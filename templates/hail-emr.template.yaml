@@ -647,12 +647,7 @@ Resources:
           UnitType: Instances
       Name: !Ref pClusterName
       ReleaseLabel: !Ref pEmrReleaseLabel
-      # If using encryption, associate the related EMR Security Configuration.
-      SecurityConfiguration:
-        !If
-            - CondEnableEncryption
-            - !Ref EmrSecurityConfiguration
-            - !Ref "AWS::NoValue"
+      SecurityConfiguration: !If [CondEnableEncryption, !Ref EmrSecurityConfiguration, !Ref "AWS::NoValue"]
       ServiceRole: !Ref roleEmr
       Steps:
         - ActionOnFailure: "CONTINUE"

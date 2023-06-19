@@ -35,7 +35,7 @@ function install_prereqs {
         zlib-devel \
         mariadb-devel
 
-    cpanm \
+    cpanm --verbose --force \
         autodie \
         Compress::Zlib \
         DBD::mysql \
@@ -48,7 +48,7 @@ function install_prereqs {
         Try::Tiny
 
     # Installed alone due to package dependency issues
-    cpanm \
+    cpanm --verbose --force \
         Bio::DB::HTS::Faidx
 }
 

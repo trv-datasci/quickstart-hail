@@ -13,6 +13,11 @@ function install_prereqs {
 
   yum -y remove java-1.7.0-openjdk*
 
+  yum install -y gcc-c++
+  amazon-linux-extras install python3.8
+  yum remove -y python3 
+  update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.8 1 
+
   yum -y update
   yum -y install \
   cmake \
@@ -61,6 +66,58 @@ function install_prereqs {
   done
 }
 
+function compare_versions
+{
+  # Trivial v1 == v2 test based on string comparison
+  [[ "$1" == "$2" ]] && echo "0" && return
+
+  # Local variables
+  local regex="^(.*)-r([0-9]*)$" va1=() vr1=0 va2=() vr2=0 len i IFS="."
+
+  # Split version strings into arrays, extract trailing revisions
+  if [[ "$1" =~ ${regex} ]]; then
+      va1=(${BASH_REMATCH[1]})
+      [[ -n "${BASH_REMATCH[2]}" ]] && vr1=${BASH_REMATCH[2]}
+  else
+      va1=($1)
+  fi
+  if [[ "$2" =~ ${regex} ]]; then
+      va2=(${BASH_REMATCH[1]})
+      [[ -n "${BASH_REMATCH[2]}" ]] && vr2=${BASH_REMATCH[2]}
+  else
+      va2=($2)
+  fi
+
+  # Bring va1 and va2 to same length by filling empty fields with zeros
+  (( ${#va1[@]} > ${#va2[@]} )) && len=${#va1[@]} || len=${#va2[@]}
+  for ((i=0; i < len; ++i)); do
+      [[ -z "${va1[i]}" ]] && va1[i]="0"
+      [[ -z "${va2[i]}" ]] && va2[i]="0"
+  done
+
+  # Append revisions, increment length
+  va1+=($vr1)
+  va2+=($vr2)
+  len=$((len+1))
+
+  # *** DEBUG ***
+  #echo "TEST: '${va1[@]} (?) ${va2[@]}'"
+
+  # Compare version elements, check if v1 > v2 or v1 < v2
+  for ((i=0; i < len; ++i)); do
+      if (( 10#${va1[i]} > 10#${va2[i]} )); then
+          echo "1"
+          return
+      elif (( 10#${va1[i]} < 10#${va2[i]} )); then
+          echo "2"
+          return
+      fi
+  done
+
+  # All elements are equal, thus v1 == v2
+  echo "0"
+}
+
 function hail_build
 {
   echo "Building Hail v.$HAIL_VERSION from source with Spark v.$SPARK_VERSION"
@@ -78,13 +135,19 @@ function hail_build
     ln -s "$JAVA_PATH" /etc/alternatives/jre/include
   fi
 
-  if [ "$HAIL_VERSION" != "master" ] && [[ "$HAIL_VERSION" < 0.2.18 ]] && [[ "$SPARK_VERSION" < 2.4.1 ]]; then
+  TEST1=$(compare_versions "$HAIL_VERSION" "0.2.18")
+  echo "Version check 1: $TEST1"
+
+  TEST2=$(compare_versions "$HAIL_VERSION" "0.2.23")
+  echo "Version check 2: $TEST2"
+
+  if [ "$HAIL_VERSION" != "master" ] && [[ "$TEST1" -eq 2 ]]; then
     if [ "$SPARK_VERSION" = "2.2.0" ]; then
       ./gradlew -Dspark.version="$SPARK_VERSION" shadowJar archiveZip
     else
       ./gradlew -Dspark.version="$SPARK_VERSION" -Dbreeze.version=0.13.2 -Dpy4j.version=0.10.6 shadowJar archiveZip
     fi
-  elif [ "$HAIL_VERSION" = "master" ] || [[ "$HAIL_VERSION" > 0.2.23 ]] || [[ "$SPARK_VERSION" > 2.4.0 ]]; then
+  elif [ "$HAIL_VERSION" = "master" ] || [[ "$TEST2" -eq 1 ]]; then
     make install-on-cluster HAIL_COMPILE_NATIVES=1 SPARK_VERSION="$SPARK_VERSION"
   else
     echo "Hail 0.2.19 - 0.2.23 builds are not possible due to incompatiable configurations resolved in 0.2.24."
@@ -103,7 +166,8 @@ function hail_install
   export PYTHONPATH="$HAIL_ARTIFACT_DIR/$ZIP_HAIL:\$SPARK_HOME/python:\$SPARK_HOME/python/lib/py4j-src.zip:\$PYTHONPATH"
 HAIL_PROFILE
 
-  if [[ "$HAIL_VERSION" < 0.2.24 ]] && [[ "$SPARK_VERSION" < 2.4.1 ]]; then
+  TEST1=$(compare_versions "$HAIL_VERSION" "0.2.24")
+  if [[ "TEST1" -eq 2 ]] && [[ "$SPARK_VERSION" < 2.4.1 ]]; then
     cp "$PWD/build/distributions/$ZIP_HAIL" "$HAIL_ARTIFACT_DIR"
   fi
 
