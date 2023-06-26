@@ -14,9 +14,6 @@ function install_prereqs {
   yum -y remove java-1.7.0-openjdk*
 
   yum install -y gcc-c++
-  amazon-linux-extras install python3.8
-  yum remove -y python3 
-  update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.8 1 
 
   yum -y update
   yum -y install \
