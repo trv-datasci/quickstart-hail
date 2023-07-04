@@ -116,6 +116,16 @@ EMR uses [managed scaling](https://docs.aws.amazon.com/systems-manager/latest/us
 
 The Service Catalog product for the SageMaker Notebook instance deploys a single Notebook instance in the same subnet as your EMR cluster.  Upon launch, several example Notebooks are seeded into the *common-notebooks* folder.  These example notebooks offer an immediate orientation interacting with your Hail EMR cluster.
 
+To get the notebook server to communicate with the cluster, you need to do the following manually:
+
+```bash
+curl https://sh.rustup.rs -sSf | sh
+sudo amazon-linux-extras install python3.8
+sudo update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.8 1
+sudo yum install python38-devel
+/usr/bin/python3 -m pip install hail bokeh
+```
+
 ### SSM Access
 
 CloudFormation parameters exist on both the EMR Cluster and SageMaker Notebook products to optionally allow Notebook instances shell access through SSM.  Set the following parameter to *true* on when deploying your notebook product to allow SSM access.
@@ -158,3 +168,6 @@ AMI names are unique.  In order to rebuild an AMI with the same name you will ne
 #### Additional Documentation
 
 Additional documentation on the building a custom Hail AMI can be found in the [AMI Creation Guide](docs/ami-creation.md)
+
+
+

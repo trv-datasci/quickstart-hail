@@ -53,14 +53,6 @@
     },
     {
       "type": "shell",
-      "inline": [
-        "sudo amazon-linux-extras install python3.8",
-        "sudo yum remove -y python3",
-        "sudo update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.8 1"
-      ]
-    },
-    {
-      "type": "shell",
       "environment_vars": [
         "VEP_VERSION={{user `vep_version`}}",
         "RODA_BUCKET={{user `roda_bucket`}}",

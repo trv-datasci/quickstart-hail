@@ -557,6 +557,30 @@ Resources:
         - Name: "Spark"
       AutoScalingRole: !Ref roleEmrAutoScaling
       BootstrapActions:
+        - Name: pythonUpgrade1
+          ScriptBootstrapAction:
+            Path: "file:/usr/bin/sudo"
+            Args:
+              - "amazon-linux-extras"
+              - "install"
+              - "python3.10"
+        - Name: pythonUpgrade2
+          ScriptBootstrapAction:
+            Path: "file:/usr/bin/sudo"
+            Args:
+              - "update-alternatives"
+              - "--install" 
+              - "/usr/bin/python3"
+              - "python3"
+              - "/usr/bin/python3.10"
+              - "1"
+        - Name: pythonUpgrade3
+          ScriptBootstrapAction:
+            Path: "file:/usr/bin/sudo"
+            Args:
+              - "yum"
+              - "install"
+              - "python310-devel"
         - Name: pythonDateutilReinstall
           ScriptBootstrapAction:
             Path: "file:/usr/bin/sudo"
@@ -567,6 +591,8 @@ Resources:
               - "install"
               - "-I"
               - "python-dateutil"
+              - "hail"
+              - "bokeh"
         - Name: numpyReinstall
           ScriptBootstrapAction:
             Path: !Join [ "", ["s3://", !Ref pHailBucket, "/emr-bootstrap-scripts/numpyinstall.sh"]]
