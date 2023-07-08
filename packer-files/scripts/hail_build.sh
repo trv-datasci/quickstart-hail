@@ -16,6 +16,11 @@ function install_prereqs {
   yum install -y gcc-c++
 
   yum -y update
+
+  amazon-linux-extras install python3.8
+  update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.8 1
+  yum -y install python38-devel
+
   yum -y install \
   cmake \
   gcc72-c++ \
