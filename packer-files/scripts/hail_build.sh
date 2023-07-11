@@ -19,7 +19,10 @@ function install_prereqs {
 
   amazon-linux-extras install python3.8
   update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.8 1
+  update-alternatives --install /usr/bin/python python /usr/bin/python3.8 1
   yum -y install python38-devel
+  rm /usr/bin/python3
+  ln -s /usr/bin/python3.8 /usr/bin/python3
 
   yum -y install \
   cmake \
@@ -64,7 +67,7 @@ function install_prereqs {
 
   for WHEEL_NAME in $WHEELS
   do
-    python3 -m pip install "$WHEEL_NAME"
+    python3.8 -m pip install "$WHEEL_NAME"
   done
 }
 
@@ -163,7 +166,7 @@ function hail_install
 
   cat <<- HAIL_PROFILE > "$HAIL_PROFILE"
   export SPARK_HOME="/usr/lib/spark"
-  export PYSPARK_PYTHON="python3"
+  export PYSPARK_PYTHON="python3.8"
   export PYSPARK_SUBMIT_ARGS="--conf spark.kryo.registrator=is.hail.kryo.HailKryoRegistrator --conf spark.serializer=org.apache.spark.serializer.KryoSerializer pyspark-shell"
   export PYTHONPATH="$HAIL_ARTIFACT_DIR/$ZIP_HAIL:\$SPARK_HOME/python:\$SPARK_HOME/python/lib/py4j-src.zip:\$PYTHONPATH"
 HAIL_PROFILE
